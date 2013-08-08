@@ -1,17 +1,16 @@
 teensyarcade
 ============
 
-An arcade-oriented converter box for SNES and N64 controllers to keyboard/joystick USB devices.
+An arcade-oriented converter box for SNES controllers to keyboard/joystick USB devices.
 
 Goals
 -----
 
-The goal of this project is to create a turn-key converter box capable of allowing the use of SNES and N64 controllers on a PC.
+The goal of this project is to create a turn-key converter box capable of allowing the use of SNES controllers on a PC.
 
 The box will be capable of the following:
 
 * Provide 2 ports for SNES controllers that can operate either has a HID keyboard, or as 2 HID joysticks.
-* Provide 4 ports for N64 controllers that can operate as 4 HID joysticks.
 * Work within the Teensyduino IDE environment as a separate board configuration.
 
 The box is being developed using a Teensy 2.0 arduino controller board. A Teensy++ 2.0 may be required for allowing more than 2 controllers depending on available I/O pins.
