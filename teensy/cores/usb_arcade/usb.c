@@ -3,10 +3,10 @@
 
 static const uint8_t PROGMEM endpoint_cfg_table[] = {
 	1, EP_TYPE_INTERRUPT_IN, EP_SIZE(KBD_SIZE) | KBD_BUFFER,				// 1
-	// TODO: Joystick 1
-	// TODO: Joystick 2
-	1, EP_TYPE_INTERRUPT_IN, EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER,		// 2
-	1, EP_TYPE_INTERRUPT_OUT, EP_SIZE(DEBUG_RX_SIZE) | DEBUG_RX_BUFFER		// 3
+	1, EP_TYPE_INTERRUPT_IN, EP_SIZE(PAD1_SIZE) | PAD1_BUFFER,				// 2
+	1, EP_TYPE_INTERRUPT_IN, EP_SIZE(PAD2_SIZE) | PAD2_BUFFER,				// 3
+	1, EP_TYPE_INTERRUPT_IN, EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER,		// 4
+	1, EP_TYPE_INTERRUPT_OUT, EP_SIZE(DEBUG_RX_SIZE) | DEBUG_RX_BUFFER		// 5
 };
 
 // Device Descriptor, USB spec 9.6.1
@@ -35,66 +35,92 @@ static const uint8_t PROGMEM kbd_hid_report_desc[] = {
 	0x09, 0x06,					// Usage (Keyboard),
 	0xA1, 0x01,					// Collection (Application),
 	// Modifier Keys
-	0x95, 0x08,						// Report Count (8),
-	0x75, 0x01,						// Report Size (1),
-	0x15, 0x00,						// Logical Minimum (0),
-	0x25, 0x01,						// Logical Maximum (1),
 	0x05, 0x07,						// Usage Page (Key Codes),
 	0x19, 0xE0,						// Usage Minimum (224),
 	0x29, 0xE7,						// Usage Maximum (231),
+	0x15, 0x00,						// Logical Minimum (0),
+	0x25, 0x01,						// Logical Maximum (1),
+	0x75, 0x01,						// Report Size (1),
+	0x95, 0x08,						// Report Count (8),
 	0x81, 0x02,						// Input (Data, Variable, Absolute),		;Modifier byte (0)
 	// LEDS
-	0x95, 0x05,						// Report Count (5),
-	0x75, 0x01,						// Report Size (1),
 	0x05, 0x08,						// Usage Page (LEDs),
 	0x19, 0x01,						// Usage Minimum (1),
 	0x29, 0x05,						// Usage Maximum (5),
-	0x91, 0x02,						// Output (Data, Variable, Absolute),		;LED Report (5/8)
-	0x95, 0x01,						// Report Count (1),
-	0x75, 0x03,						// Report Size (3),
-	0x91, 0x03,						// Output (Constant),						;LED Report padding (8/8)
-	// Keys
-	0x95, KBD_KEY_COUNT,			// Report Count (104),
 	0x75, 0x01,						// Report Size (1),
-	0x15, 0x00,						// Logical Minimum (0),
-	0x25, 0x01,						// Logical Maximum (1),
+	0x95, 0x05,						// Report Count (5),
+	0x91, 0x02,						// Output (Data, Variable, Absolute),		;LED Report (5/8)
+	0x75, 0x03,						// Report Size (3),
+	0x95, 0x01,						// Report Count (1),
+	0x91, 0x03,						// Output (Constant, Variable, Absolute),	;LED Report padding (8/8)
+	// Keys
 	0x05, 0x07,						// Usage Page (Key Codes),
 	0x19, 0x00,						// Usage Minimum (0),
 	0x29, KBD_KEY_COUNT - 1,		// Usage Maximum (103),
+	0x15, 0x00,						// Logical Minimum (0),
+	0x25, 0x01,						// Logical Maximum (1),
+	0x75, 0x01,						// Report Size (1),
+	0x95, KBD_KEY_COUNT,			// Report Count (104),
 	0x81, 0x02,						// Input (Data, Variable, Absolute),		;Key byte (1-13)
-	0x95, 0x02,						// Report Count (2),
 	0x75, 0x08,						// Report Size (8),
-	0x81, 0x03,						// Input (Constant),						;Key byte padding (14-15)
+	0x95, 0x02,						// Report Count (2),
+	0x81, 0x03,						// Input (Constant, Variable, Absolute),	;Key byte padding (14-15)
 	0xC0						// End Collection
 };
 
-/*
- * TODO
- * Add joystick support
- */
+// Gamepad (SNES) Protocol, HID 1.11 spec
+static const uint8_t PROGMEM pad_hid_report_desc[] = {
+	0x05, 0x01,					// Usage Page (Generic Desktop),
+	0x09, 0x05,					// Usage (Gamepad),
+	0xA1, 0x01,					// Collection (Application),
+	// D-Pad (2bits per X/Y)
+	0x09, 0x01,						// Usage (Pointer),							;D-Pad
+	0xA1, 0x00,						// Collection (Physical),
+	0x09, 0x30,							// Usage (X),
+	0x09, 0x31,							// Usage (Y),
+	0x15, 0xFF,							// Logical Minimum (0),					;-X/Y
+	0x26, 0xFF, 0x00,					// Logical Maximum (255),				;X/Y
+	0x75, 0x02,							// Report Size (8),
+	0x95, 0x02,							// Report Count (2),
+	0x81, 0x02,							// Input (Data, Variable, Absolute),	;D-Pad bytes (2/3)
+	0xC0,							// End Collection,
+	// 8 Buttons (1bit per button)
+	0x05, 0x09,						// Usage Page (Button),
+	0x19, 0x01,						// Usage Minimum (Button 1),
+	0x29, 0x08,						// Usage Maximum (Button 8),
+	0x15, 0x00,						// Logical Minimum (0),
+	0x25, 0x01,						// Logical Maximum (1),
+	0x75, 0x01,						// Report Size (1),
+	0x95, 0x08,						// Report Count (8),						;Buttons 1-8
+	0x81, 0x02,						// Input (Constant, Variable, Absolute)		;Button byte (3/3)
+	0xC0,						// End Collection
+};
 
+// Arduino Serial Protocol
 static const uint8_t PROGMEM debug_hid_report_desc[] = {
-	0x06, 0xC9, 0xFF,			// Usage Page 0xFFC9 (vendor defined)
-	0x09, 0x04,					// Usage 0x04
-	0xA1, 0x5C,					// Collection 0x5C
-	0x75, 0x08,						// report size = 8 bits (global)
-	0x15, 0x00,						// logical minimum = 0 (global)
-	0x26, 0xFF, 0x00,				// logical maximum = 255 (global)
-	0x95, DEBUG_TX_SIZE,			// report count (global)
-	0x09, 0x75,						// usage (local)
-	0x81, 0x02,						// Input
-	0x95, DEBUG_RX_SIZE,			// report count (global)
-	0x09, 0x76,						// usage (local)
-	0x91, 0x02,						// Output
-	0x95, 0x04,						// report count (global)
-	0x09, 0x76,						// usage (local)
-	0xB1, 0x02,						// Feature
-	0xC0						// end collection
+	0x06, 0xC9, 0xFF,			// Usage Page (0xFFC9),							;Vendor defined
+	0x09, 0x04,					// Usage (0x04),
+	0xA1, 0x5C,					// Collection (0x5C),
+	0x15, 0x00,						// Logical Minimum (0),
+	0x26, 0xFF, 0x00,				// Logical Maximum (255),
+	0x75, 0x08,						// Report Size (8),
+	0x09, 0x75,						// Usage (Local),
+	0x95, DEBUG_TX_SIZE,			// Report Count (DEBUG_TX_SIZE),
+	0x81, 0x02,						// Input (Data, Variable, Absolute),
+	0x09, 0x75,						// Usage (Local),
+	0x95, DEBUG_RX_SIZE,			// Report Count (DEBUG_RX_SIZE),
+	0x91, 0x02,						// Output (Data, Variable, Absolute),
+	0x09, 0x76,						// Usage (Local),
+	0x95, 0x04,						// Report Count (4),
+	0xB1, 0x02,						// Feature (Data, Variable, Absolute),
+	0xC0,						// End Collection
 };
 
 #define KBD_HID_DESC_OFFSET			(9 + 9)
-#define DEBUG_HID_DESC_OFFSET		(9 + 9+9+7 + 9)
-#define CFG1_DESC_SIZE				(9 + 9+9+7 + 9+9+7+7)
+#define PAD1_HID_DESC_OFFSET		(9 + 9+9+7 + 9)
+#define PAD2_HID_DESC_OFFSET		(9 + 9+9+7 + 9+9+7 + 9)
+#define DEBUG_HID_DESC_OFFSET		(9 + 9+9+7 + 9+9+7 + 9+9+7 + 9)
+#define CFG1_DESC_SIZE				(9 + 9+9+7 + 9+9+7 + 9+9+7 + 9+9+7+7)
 
 
 static const uint8_t PROGMEM config1_desc[] = {
@@ -138,12 +164,69 @@ static const uint8_t PROGMEM config1_desc[] = {
 	KBD_ENDPOINT | 0x80,			// bEndpointAddress (Input),
 	0x03,							// bmAttributes (Interrupt),
 	KBD_SIZE, 0x00,					// wMaxPacketSize,
-	KBD_INTERVAL,					// bInterval (1),
+	KBD_INTERVAL,					// bInterval,
 	
-	/*
-	 * TODO
-	 * Add joystick support
-	 */
+	// Pad 1 (Gamepad)
+	
+	// Interface Descriptor, USB spec 9.6.5										;Pad 1 (Gamepad)
+	0x09,							// bLength,
+	0x04,							// bDescriptorType,
+	PAD1_INTERFACE,					// bInterfaceNumber,
+	0x00,							// bAlternateSetting,
+	0x01,							// bNumEndpoints,
+	0x03,							// bInterfaceClass (HID),
+	0x00,							// bInterfaceSubClass (None),
+	0x00,							// bInterfaceProtocol (None),
+	0x00,							// iInterface,
+	
+	// HID Descriptor, HID 1.11 spec 6.2.1										;Pad 1 (Gamepad)
+	0x09,							// bLength,
+	0x21,							// bDescriptorType,
+	0x11, 0x01,						// bcdHID,
+	0x00,							// bCountryCode,
+	0x01,							// bNumDescriptors,
+	0x22,							// bDescriptorType,
+	sizeof(pad_hid_report_desc),	// wDescriptorLength(1),
+	0x00,							// wDescriptorLength(2),
+	
+	// Endpoint Descriptor, USB spec 9.6.6										;Pad 1 (Gamepad)
+	0x07,							// bLength,
+	0x05,							// bDescriptorType,
+	PAD1_ENDPOINT | 0x80,			// bEndpointAddress (Input),
+	0x03,							// bmAttributes (Interrupt),
+	PAD1_SIZE, 0x00,				// wMaxPacketSize,
+	PAD1_INTERVAL,					// bInterval,
+	
+	// Pad 2 (Gamepad)
+	
+	// Interface Descriptor, USB spec 9.6.5										;Pad 2 (Gamepad)
+	0x09,							// bLength,
+	0x04,							// bDescriptorType,
+	PAD2_INTERFACE,					// bInterfaceNumber,
+	0x00,							// bAlternateSetting,
+	0x01,							// bNumEndpoints,
+	0x03,							// bInterfaceClass (HID),
+	0x00,							// bInterfaceSubClass (None),
+	0x00,							// bInterfaceProtocol (None),
+	0x00,							// iInterface,
+	
+	// HID Descriptor, HID 1.11 spec 6.2.1										;Pad 2 (Gamepad)
+	0x09,							// bLength,
+	0x21,							// bDescriptorType,
+	0x11, 0x01,						// bcdHID,
+	0x00,							// bCountryCode,
+	0x01,							// bNumDescriptors,
+	0x22,							// bDescriptorType,
+	sizeof(pad_hid_report_desc),	// wDescriptorLength(1),
+	0x00,							// wDescriptorLength(2),
+	
+	// Endpoint Descriptor, USB spec 9.6.6										;Pad 2 (Gamepad)
+	0x07,							// bLength,
+	0x05,							// bDescriptorType,
+	PAD2_ENDPOINT | 0x80,			// bEndpointAddress (Input),
+	0x03,							// bmAttributes (Interrupt),
+	PAD2_SIZE, 0x00,				// wMaxPacketSize,
+	PAD2_INTERVAL,					// bInterval,
 	
 	// Debugging
 	
@@ -215,6 +298,10 @@ static const struct descriptor_list_struct {
 	{0x0200, 0x0000, config1_desc, sizeof(config1_desc)},								// Configuration
 	{0x2200, KBD_INTERFACE, kbd_hid_report_desc, sizeof(kbd_hid_report_desc)},			// HID/Report
 	{0x2100, KBD_INTERFACE, config1_desc + KBD_HID_DESC_OFFSET, 9},						// HID/Report
+	{0x2200, PAD1_INTERFACE, pad_hid_report_desc, sizeof(pad_hid_report_desc)},			// HID/Report
+	{0x2100, PAD1_INTERFACE, config1_desc + PAD1_HID_DESC_OFFSET, 9},					// HID/Report
+	{0x2200, PAD2_INTERFACE, pad_hid_report_desc, sizeof(pad_hid_report_desc)},			// HID/Report
+	{0x2100, PAD2_INTERFACE, config1_desc + PAD2_HID_DESC_OFFSET, 9},					// HID/Report
 	{0x2200, DEBUG_INTERFACE, debug_hid_report_desc, sizeof(debug_hid_report_desc)},	// HID/Report
 	{0x2100, DEBUG_INTERFACE, config1_desc + DEBUG_HID_DESC_OFFSET, 9},					// HID/Report
 	{0x0300, 0x0000, (const uint8_t *)&str0, 4},										// String
@@ -239,14 +326,6 @@ volatile uint8_t debug_flush_timer USBSTATE;
 // 14 - 15  Not used
 uint8_t keyboard_report_data[KBD_SIZE] USBSTATE;
 
-// Protocol setting for the host. Used to report which setting
-// is in use.
-static uint8_t keyboard_protocol USBSTATE;
-
-// How often report is sent to host even when no changes
-// have been made (ms * 4)
-static uint8_t keyboard_idle_config USBSTATE;
-
 // Count until idle timeout
 uint8_t keyboard_idle_count USBSTATE;
 
@@ -257,6 +336,30 @@ uint8_t keyboard_idle_count USBSTATE;
 // 8	Compose
 // 16	Kana
 volatile uint8_t keyboard_leds USBSTATE;
+
+// Protocol setting for the host. Used to report which setting
+// is in use.
+static uint8_t keyboard_protocol USBSTATE;
+
+// How often report is sent to host even when no changes
+// have been made (ms * 4)
+static uint8_t keyboard_idle_config USBSTATE;
+
+// Pad 1 Report Data
+// 0-1		X
+// 2-3		Y
+// 4-7		Not Used
+// 8-15		Buttons 1-8
+uint8_t pad1_report_data[PAD1_SIZE] USBSTATE;
+
+// Pad 2 Report Data
+// 0-1		X
+// 2-3		Y
+// 4-7		Not Used
+// 8-15		Buttons 1-8
+uint8_t pad2_report_data[PAD2_SIZE] USBSTATE;
+
+
 
 void usb_init(void) {
 	uint8_t u, i;
@@ -272,22 +375,26 @@ void usb_init(void) {
 	UDCON = 0;								// Connect attach resistor
 	
 	usb_configuration = 0;
-	
 	usb_suspended = 0;
-	
 	debug_flush_timer = 0;
 	
 	for (i = 0; i < KBD_SIZE; i++) {
 		keyboard_report_data[i] = 0;
 	}
+	keyboard_idle_count = 0;
+	keyboard_leds = 0;
 	
 	keyboard_protocol = 1;
-	
 	keyboard_idle_config = 125;
 	
-	keyboard_idle_count = 0;
+	for (i = 0; i < PAD1_SIZE; i++) {
+		pad1_report_data[i] = 0;
+	}
 	
-	keyboard_leds = 0;
+	for (i = 0; i < PAD2_SIZE; i++) {
+		pad2_report_data[i] = 0;
+	}
+	
 	
 	UDINT = 0;
 	UDIEN = (1 << EORSTE) | (1 << SOFE);
@@ -518,6 +625,9 @@ ISR(USB_COM_vect) {
 				return;
 			}
 		}
+		
+		// Keyboard
+		
 		if (wIndex == KBD_INTERFACE) {
 			if (bmRequestType == 0xA1) {
 				if (bRequest == HID_GET_REPORT) {
@@ -563,10 +673,37 @@ ISR(USB_COM_vect) {
 			}
 		}
 		
-		/*
-		 * TODO
-		 * Add joystick support
-		 */
+		// Gamepads
+		
+		// Pad 1
+		if (wIndex == PAD1_INTERFACE) {
+			if (bmRequestType = 0xA1) {
+				if (bRequest == HID_GET_REPORT) {
+					usb_wait_in_ready();
+					for (i = 0; i < PAD1_SIZE; i++) {
+						UEDATX = pad1_report_data[i];
+					}
+					usb_send_in();
+					return;
+				}
+			}
+		}
+		
+		// Pad 2
+		if (wIndex == PAD2_INTERFACE) {
+			if (bmRequestType = 0xA1) {
+				if (bRequest == HID_GET_REPORT) {
+					usb_wait_in_ready();
+					for (i = 0; i < PAD2_SIZE; i++) {
+						UEDATX = pad2_report_data[i];
+					}
+					usb_send_in();
+					return;
+				}
+			}
+		}
+		
+		// Debugging
 		
 		if (wIndex == DEBUG_INTERFACE) {
 			if (bRequest == HID_GET_REPORT && bmRequestType == 0xA1) {
