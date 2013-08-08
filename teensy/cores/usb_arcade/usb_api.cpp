@@ -65,3 +65,59 @@ void usb_keyboard_class::send(void) {
 }
 
 usb_keyboard_class Keyboard = usb_keyboard_class();
+
+void usb_gamepad_class::pressButton(uint8_t button) {
+	m_data[2] |= button;
+}
+
+void usb_gamepad_class::releaseButton(uint8_t button) {
+	m_data[2] &= ~(button);
+}
+
+void usb_gamepad_class::setX(uint8_t x) {
+	m_data[0] = x;
+}
+
+void usb_gamepad_class::setY(uint8_t y) {
+	m_data[1] = y;
+}
+
+void usb_gamepad_class::releaseAll(void) {
+	m_data[0] = D_NONE;
+	m_data[1] = D_NONE;
+	m_data[2] = 0;
+}
+
+void usb_gamepad_class::send(void) {
+	uint8_t intr_state, timeout, i;
+	if (!usb_configuration)
+		return;
+	intr_state = SREG;
+	cli();
+	UENUM = m_endpoint;
+	timeout = UDFNUML + 50;
+	while (1) {
+		// are we ready to transmit?
+		if (UEINTX & (1 << RWAL))
+			break;
+		SREG = intr_state;
+		// has the USB gone offline?
+		if (!usb_configuration)
+			return;
+		// have we waited too long?
+		if (UDFNUML == timeout)
+			return;
+		// get ready to try checking again
+		intr_state = SREG;
+		cli();
+		UENUM = m_endpoint;
+	}
+	for (i = 0; i < m_size; i++) {
+		UEDATX = m_data[i];
+	}
+	UEINTX = 0x3A;
+	SREG = intr_state;
+}
+
+usb_gamepad_class Gamepad1 = usb_gamepad_class(PAD1_INTERFACE, PAD1_ENDPOINT, PAD1_SIZE, pad1_report_data);
+usb_gamepad_class Gamepad2 = usb_gamepad_class(PAD2_INTERFACE, PAD2_ENDPOINT, PAD2_SIZE, pad2_report_data);
