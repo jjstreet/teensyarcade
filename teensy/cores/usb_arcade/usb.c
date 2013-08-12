@@ -346,20 +346,16 @@ static uint8_t keyboard_protocol USBSTATE;
 static uint8_t keyboard_idle_config USBSTATE;
 
 // Pad 1 Report Data
-// 0-1		X
-// 2-3		Y
-// 4-7		Not Used
-// 8-15		Buttons 1-8
+// 0		X
+// 1		Y
+// 3		Buttons 1-8
 uint8_t pad1_report_data[PAD1_SIZE] USBSTATE;
 
 // Pad 2 Report Data
-// 0-1		X
-// 2-3		Y
-// 4-7		Not Used
-// 8-15		Buttons 1-8
+// 0		X
+// 1		Y
+// 3		Buttons 1-8
 uint8_t pad2_report_data[PAD2_SIZE] USBSTATE;
-
-
 
 void usb_init(void) {
 	uint8_t u, i;
@@ -387,14 +383,13 @@ void usb_init(void) {
 	keyboard_protocol = 1;
 	keyboard_idle_config = 125;
 	
-	for (i = 0; i < PAD1_SIZE; i++) {
-		pad1_report_data[i] = 0;
-	}
+	pad1_report_data[0] = 0x7F;
+	pad1_report_data[1] = 0x7F;
+	pad1_report_data[2] = 0x00;
 	
-	for (i = 0; i < PAD2_SIZE; i++) {
-		pad2_report_data[i] = 0;
-	}
-	
+	pad2_report_data[0] = 0x7F;
+	pad2_report_data[1] = 0x7F;
+	pad2_report_data[2] = 0x00;
 	
 	UDINT = 0;
 	UDIEN = (1 << EORSTE) | (1 << SOFE);
