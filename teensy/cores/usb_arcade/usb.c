@@ -73,7 +73,7 @@ static const uint8_t PROGMEM pad_hid_report_desc[] = {
 	0x05, 0x01,					// Usage Page (Generic Desktop),
 	0x09, 0x05,					// Usage (Gamepad),
 	0xA1, 0x01,					// Collection (Application),
-	// D-Pad (2bits per X/Y)
+	// D-Pad (1B per X/Y)
 	0x09, 0x01,						// Usage (Pointer),							;D-Pad
 	0xA1, 0x00,						// Collection (Physical),
 	0x09, 0x30,							// Usage (X),
@@ -92,7 +92,7 @@ static const uint8_t PROGMEM pad_hid_report_desc[] = {
 	0x25, 0x01,						// Logical Maximum (1),
 	0x75, 0x01,						// Report Size (1),
 	0x95, 0x08,						// Report Count (8),						;Buttons 1-8
-	0x81, 0x02,						// Input (Constant, Variable, Absolute)		;Button byte (3/3)
+	0x81, 0x02,						// Input (Data, Variable, Absolute)			;Button byte (3/3)
 	0xC0,						// End Collection
 };
 
