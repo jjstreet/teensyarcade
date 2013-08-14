@@ -80,7 +80,7 @@ static const uint8_t PROGMEM pad_hid_report_desc[] = {
 	0x09, 0x31,							// Usage (Y),
 	0x15, 0xFF,							// Logical Minimum (0),					;-X/Y
 	0x26, 0xFF, 0x00,					// Logical Maximum (255),				;X/Y
-	0x75, 0x02,							// Report Size (8),
+	0x75, 0x08,							// Report Size (8),
 	0x95, 0x02,							// Report Count (2),
 	0x81, 0x02,							// Input (Data, Variable, Absolute),	;D-Pad bytes (2/3)
 	0xC0,							// End Collection,
