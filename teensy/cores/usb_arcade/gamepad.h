@@ -1,12 +1,12 @@
-#ifndef GAMEPAD_H
-#define GAMEPAD_H
+#ifndef gamepad_h
+#define gamepad_h
 
 // USB Gamepad Directional Keys
-#define D_RIGHT		0xFF
+#define D_RIGHT		0x02
 #define D_LEFT		0x00
-#define D_UP		0xFF
-#define D_DOWN		0x00
-#define D_NONE		0x7F
+#define D_UP		0x00
+#define D_DOWN		0x02
+#define D_NONE		0x01
 
 // USB Gamepad Buttons
 #define B_1			0x01
