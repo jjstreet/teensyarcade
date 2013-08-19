@@ -18,7 +18,7 @@ static const uint8_t PROGMEM device_desc[] = {
 	ENDPOINT0_SIZE,									// bMaxPacketSize0,
 	LSB(VENDOR_ID), MSB(VENDOR_ID),					// idVendor,
 	LSB(PRODUCT_ID), MSB(PRODUCT_ID),				// idProduct,
-	0x01, 0x00,										// bcdDevice,
+	0x02, 0x01,										// bcdDevice,
 	0x01,											// iManufacturer,
 	0x02,											// iProduct,
 	0x00,											// iSerialNumber,
@@ -40,6 +40,7 @@ static const uint8_t PROGMEM pad_hid_report_desc[] = {
 	0x95, 0x08,												// Report Count (8),
 	0x81, 0x02,												// Input (Data, Variable, Absolute),
 	0x05, 0x01,												// Usage Page (Generic Desktop),
+	0x09, 0x01,												// Usage (Pointer),
 	0xA1, 0x00,												// Collection (Physical),
 	0x09, 0x30,													// Usage (X),
 	0x09, 0x31,													// Usage (Y),
@@ -213,7 +214,7 @@ static const struct usb_str_desc_struct PROGMEM str0 = {
 };
 
 static const struct usb_str_desc_struct PROGMEM str1 = {
-	sizeof(STR_PRODUCT),
+	sizeof(STR_MANUFACTURER),
 	3,
 	STR_MANUFACTURER
 };
@@ -239,8 +240,8 @@ static const struct descriptor_list_struct {
 		{0x2200, KBD_INTERFACE, kbd_hid_report_desc, sizeof(kbd_hid_report_desc)},			// HID/Report
 		{0x2100, KBD_INTERFACE, cfg1_desc + KBD_HID_DESC_OFFSET, 9},						// HID/Report
 	{0x0300, 0x0000, (const uint8_t *)&str0, 4},											// String
-	{0x0301, 0x0409, (const uint8_t *)&str1, sizeof(STR_MANUFACTURER)},						// String
-	{0x0302, 0x0409, (const uint8_t *)&str1, sizeof(STR_PRODUCT)},							// String
+	{0x0301, 0x0409, (const uint8_t *)&str1, sizeof(STR_MANUFACTURER)},							// String
+	{0x0302, 0x0409, (const uint8_t *)&str2, sizeof(STR_PRODUCT)},							// String
 };
 
 #define NUM_DESC_LIST (sizeof(descriptor_list) / sizeof(struct descriptor_list_struct))
