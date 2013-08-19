@@ -23,7 +23,7 @@ The teensy is mounted to a prototype PCB with 2 7-position screw terminals conne
 How to Use
 ----------
 
-Currently this software is considered very unstable and is not guaranteed to produce results. However, you can play around with it by doing the following:
+Currently this software should allow you to operate 2 SNES controllers as a keyboard or 2 gamepads. You can play around with it by doing the following:
 
 1. Clone the repo
 2. Navigate to your Arduino IDE installation and then to _Arduino/hardware/teensy_
