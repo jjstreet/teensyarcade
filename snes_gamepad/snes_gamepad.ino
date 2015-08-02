@@ -150,7 +150,7 @@ void process() {
 	if (cData1[3])
 		Gamepad1.pressButton(B_7);
 	// Select
-	if (cData1[4])
+	if (cData1[2])
 		Gamepad1.pressButton(B_8);
 	Gamepad1.send();
 	
@@ -188,7 +188,7 @@ void process() {
 	if (cData2[3])
 		Gamepad2.pressButton(B_7);
 	// Select
-	if (cData2[4])
+	if (cData2[2])
 		Gamepad2.pressButton(B_8);
 	Gamepad2.send();
 	
