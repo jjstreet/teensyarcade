@@ -15,26 +15,36 @@
 // 00000000 01000000 - X
 // 00000000 00100000 - L
 // 00000000 00010000 - R
+const unsigned int B_PRESSED       = 1;
+const unsigned int Y_PRESSED       = 1 << 1;
+const unsigned int SELECT_PRESSED  = 1 << 2;
+const unsigned int START_PRESSED   = 1 << 3;
+const unsigned int UP_PRESSED      = 1 << 4;
+const unsigned int DOWN_PRESSED    = 1 << 5;
+const unsigned int LEFT_PRESSED    = 1 << 6;
+const unsigned int RIGHT_PRESSED   = 1 << 7;
+const unsigned int A_PRESSED       = 1 << 8;
+const unsigned int X_PRESSED       = 1 << 9;
+const unsigned int L_PRESSED       = 1 << 10;
+const unsigned int R_PRESSED       = 1 << 11;
 
-const int PIN_CLOCK = 12;
-const int PIN_LATCH = 14;
-const int PIN_DATA1 = 5;			// Player 1
-const int PIN_DATA2 = 16;			// Player 2
+void processPad(usb_gamepad_class &pad,  int data);
+const int PIN_CLOCK = PIN_C2;
+const int PIN_LATCH = PIN_E0;
+const int PIN_DATA1 = PIN_D5;			// Player 1
+const int PIN_DATA2 = PIN_C6;			// Player 2
 
 // Debounce time
 const int dbTime = 10;
 
-// Controller Data
-int cData1[16];						// Player 1
-int cData2[16];						// Player 2
 
 // Read Controller Data
-int rData1[16];						// Player 1
-int rData2[16];						// Player 2
+unsigned int rData1;						// Player 1
+unsigned int rData2;						// Player 2
 
 // Counters for Controller Data
-int cCount1[16];					// Player 1
-int cCount2[16];					// Player 2
+//int cCount1[16];					// Player 1
+//int cCount2[16];					// Player 2
 
 // Timer
 int time;
@@ -73,10 +83,11 @@ void readControllers() {
 	delayMicroseconds(12);
 	digitalWrite(PIN_LATCH, LOW);
 	delayMicroseconds(6);
-	
+	rData1 =0;
+  rData2 =0; 
 	// Cycle 0 - Available immediately
-	rData1[0] = !digitalRead(PIN_DATA1);
-	rData2[0] = !digitalRead(PIN_DATA2);
+	rData1 |= !digitalRead(PIN_DATA1);
+	rData2 |= !digitalRead(PIN_DATA2);
 	
 	// Cycles 1 - 15 - Pulse clock then read
 	for (i = 1; i < 16; i++) {
@@ -84,112 +95,63 @@ void readControllers() {
 		delayMicroseconds(6);
 		digitalWrite(PIN_CLOCK, LOW);
 		delayMicroseconds(6);
-		rData1[i] = !digitalRead(PIN_DATA1);
-		rData2[i] = !digitalRead(PIN_DATA2);
+		rData1 |= (!digitalRead(PIN_DATA1)<< i);
+		rData2 |= (!digitalRead(PIN_DATA2)<< i);
 	}
-	
-	// Handle debounce
-	for (i = 0; i < 16; i++) {
-		// Player 1
-		if (rData1[i] == cData1[i] && cCount1[i] > 0) {
-			cCount1[i]--;
-		}
-		if (rData1[i] != cData1[i]) {
-			cCount1[i]++;
-		}
-		if (cCount1[i] >= dbTime) {
-			cCount1[i] = 0;
-			cData1[i] = rData1[i];
-		}
-		// Player 2
-		if (rData2[i] == cData2[i] && cCount2[i] > 0) {
-			cCount2[i]--;
-		}
-		if (rData2[i] != cData2[i]) {
-			cCount2[i]++;
-		}
-		if (cCount2[i] >= dbTime) {
-			cCount2[i] = 0;
-			cData2[i] = rData2[i];
-		}
-	}
+
 }
 
 void process() {
+    
 	// Player 1
-	Gamepad1.releaseAll();
-	// D-X
-	if (cData1[6] && !cData1[7])
-		Gamepad1.setX(D_LEFT);
-	else if (!cData1[6] && cData1[7])
-		Gamepad1.setX(D_RIGHT);
-	// D-Y
-	if (cData1[4] && !cData1[5])
-		Gamepad1.setY(D_UP);
-	else if (!cData1[4] && cData1[5])
-		Gamepad1.setY(D_DOWN);
-	// B
-	if (cData1[0])
-		Gamepad1.pressButton(B_1);
-	// Y
-	if (cData1[1])
-		Gamepad1.pressButton(B_2);
-	// A
-	if (cData1[8])
-		Gamepad1.pressButton(B_3);
-	// X
-	if (cData1[9])
-		Gamepad1.pressButton(B_4);
-	// L
-	if (cData1[10])
-		Gamepad1.pressButton(B_5);
-	// R
-	if (cData1[11])
-		Gamepad1.pressButton(B_6);
-	// Start
-	if (cData1[3])
-		Gamepad1.pressButton(B_7);
-	// Select
-	if (cData1[4])
-		Gamepad1.pressButton(B_8);
-	Gamepad1.send();
+ processPad(Gamepad1, rData1);
+  // Player 2
+ processPad(Gamepad2, rData2);
+
 	
-	// Player 2
-	Gamepad2.releaseAll();
-	// D-X
-	if (cData2[6] && !cData2[7])
-		Gamepad2.setX(D_LEFT);
-	else if (!cData2[6] && cData2[7])
-		Gamepad2.setX(D_RIGHT);
-	// D-Y
-	if (cData2[4] && !cData2[5])
-		Gamepad2.setY(D_UP);
-	else if (!cData2[4] && cData2[5])
-		Gamepad2.setY(D_DOWN);
-	// B
-	if (cData2[0])
-		Gamepad2.pressButton(B_1);
-	// Y
-	if (cData2[1])
-		Gamepad2.pressButton(B_2);
-	// A
-	if (cData2[8])
-		Gamepad2.pressButton(B_3);
-	// X
-	if (cData2[9])
-		Gamepad2.pressButton(B_4);
-	// L
-	if (cData2[10])
-		Gamepad2.pressButton(B_5);
-	// R
-	if (cData2[11])
-		Gamepad2.pressButton(B_6);
-	// Start
-	if (cData2[3])
-		Gamepad2.pressButton(B_7);
-	// Select
-	if (cData2[4])
-		Gamepad2.pressButton(B_8);
-	Gamepad2.send();
-	
+}
+
+
+void processPad(usb_gamepad_class &pad,  int data)
+{
+    // Player 1
+  pad.releaseAll();
+  // D-X
+  if (data & LEFT_PRESSED)
+  {
+    pad.setX(D_LEFT);
+  }
+ if (data & RIGHT_PRESSED)
+    pad.setX(D_RIGHT);
+  // D-Y
+  if (data & UP_PRESSED)
+    pad.setY(D_UP);
+  if (data & DOWN_PRESSED)
+    pad.setY(D_DOWN);
+  // B
+  if (data & B_PRESSED)
+    pad.pressButton(B_1);
+  // Y
+  if (data & Y_PRESSED)
+    pad.pressButton(B_2);
+  // A
+  if (data & A_PRESSED)
+    pad.pressButton(B_3);
+  // X
+  if (data & X_PRESSED)
+    pad.pressButton(B_4);
+  // L
+  if (data & L_PRESSED)
+    pad.pressButton(B_5);
+  // R
+  if (data & R_PRESSED)
+    pad.pressButton(B_6);
+  // Start
+  if (data & START_PRESSED)
+    pad.pressButton(B_7);
+  // Select
+  if (data & SELECT_PRESSED)
+    pad.pressButton(B_8);
+  pad.send();
+
 }
